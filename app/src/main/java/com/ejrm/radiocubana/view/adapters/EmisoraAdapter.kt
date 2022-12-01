@@ -10,34 +10,27 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ejrm.radiocubana.R
 import com.ejrm.radiocubana.model.EmisoraModel
 
-class EmisoraAdapter : RecyclerView.Adapter<EmisoraAdapter.ViewHolder>() {
-    var emisora: MutableList<EmisoraModel>  = ArrayList()
-    lateinit var context: Context
+class EmisoraAdapter(val emisora:List<EmisoraModel>) : RecyclerView.Adapter<EmisoraAdapter.ViewHolder>() {
 
-    fun RecyclerAdapter(emisora : MutableList<EmisoraModel>, context: Context){
-        this.emisora = emisora
-        this.context = context
-    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EmisoraAdapter.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         return ViewHolder(layoutInflater.inflate(R.layout.emisora_card, parent, false))
     }
 
     override fun onBindViewHolder(holder: EmisoraAdapter.ViewHolder, position: Int) {
-        val item = emisora.get(position)
-        holder.bind(item, context)
+        holder.bind(emisora[position])
     }
 
-    override fun getItemCount(): Int {
-        return emisora.size
-    }
+    override fun getItemCount(): Int = emisora.size
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name = view.findViewById(R.id.item_title) as TextView
         val description = view.findViewById(R.id.item_descrip) as TextView
         val logo = view.findViewById(R.id.item_logo) as ImageView
-        fun bind(superhero:EmisoraModel, context: Context){
-
+        fun bind(emisor:EmisoraModel){
+            name.text = emisor.name
+            description.text = emisor.description
+            logo.setImageResource(emisor.imagen)
         }
     }
 }
