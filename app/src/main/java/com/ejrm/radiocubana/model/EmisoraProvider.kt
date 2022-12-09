@@ -5,7 +5,8 @@ import com.ejrm.radiocubana.R
 class EmisoraProvider {
 
     companion object{
-       val emisoraList = listOf<EmisoraModel>(
+          fun getEmisoras(): List<EmisoraModel> = emisoraList
+     private  val emisoraList = listOf<EmisoraModel>(
            EmisoraModel("https://icecast.teveo.cu/kHKL7tWd","Radio Rebelde(AM)","Emisora de la Revolución Cubana", R.drawable.radio_rebelde),
            EmisoraModel("https://icecast.teveo.cu/zrXXWK9F","Radio Rebelde(FM)","Emisora de la Revolución Cubana", R.drawable.radio_rebeldefm),
            EmisoraModel("https://icecast.teveo.cu/XjfW7qWN","Radio Progreso","La Onda de la Alegría", R.drawable.radio_progreso),
