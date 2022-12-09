@@ -1,5 +1,6 @@
 package com.ejrm.radiocubana.view
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.ejrm.radiocubana.databinding.ActivityMainBinding
@@ -11,8 +12,9 @@ class EmisoraView : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = EmisoraDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.imgWEB.setImageResource(intent.extras!!.getInt("imagen"))
+        var img = intent.extras!!.getInt("imagen")
         var url = intent.extras!!.getCharSequence("link")
+        binding.imgWEB.setImageResource(img)
         binding.web.loadUrl(url.toString())
         binding.web.settings.javaScriptEnabled
 

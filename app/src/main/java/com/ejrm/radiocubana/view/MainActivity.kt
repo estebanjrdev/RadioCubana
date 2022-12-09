@@ -1,6 +1,8 @@
 package com.ejrm.radiocubana.view
 
 import android.content.Intent
+import android.media.AudioManager
+import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,14 +30,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun itemSelected(emisora: EmisoraModel) {
-        val intent = Intent(this, EmisoraView::class.java)
-        val bundle = Bundle()
-        bundle.putString("name", emisora.name)
-        bundle.putString("description", emisora.description)
-        bundle.putString("link", emisora.link)
-        bundle.putInt("image", emisora.imagen)
-        intent.putExtras(bundle)
-        startActivity(intent)
+        val url = emisora.link
+        val mediaPlayer: MediaPlayer? = MediaPlayer().apply {
+            setAudioStreamType(AudioManager.STREAM_MUSIC)
+            setDataSource(url)
+            prepare()
+            start()
+        }
+
+        /* val intent = Intent(this, EmisoraView::class.java)
+         val bundle = Bundle()
+         bundle.putString("name", emisora.name)
+         bundle.putString("description", emisora.description)
+         bundle.putString("link", emisora.link)
+         bundle.putInt("image", emisora.imagen)
+         intent.putExtras(bundle)
+         startActivity(intent)*/
     }
 
 
