@@ -37,28 +37,34 @@
                 android:layout_margin="10dp"
                 android:src="@drawable/ic_launcher_background" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/btnPause"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                app:fabCustomSize="40dp"
-                app:backgroundTint="@color/colorPrimary"
-                android:layout_marginLeft="40dp"
-                android:src="@drawable/ic_pause_24"
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
                 android:layout_centerVertical="true"
-                android:layout_toRightOf="@+id/imagelogo"
-                android:clickable="true"/>
+                android:textStyle="italic"
+                android:textColor="@color/white"
+                android:textSize="24dp"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:textAlignment="center"
+                android:text="efighfi"
+                android:layout_toRightOf="@+id/imagelogo"/>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/btnPlay"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 app:fabCustomSize="40dp"
-                android:layout_marginLeft="20dp"
+                android:layout_marginLeft="15dp"
                 app:srcCompat="@drawable/ic_play_24"
                 app:backgroundTint="@color/colorPrimary"
                 android:layout_centerVertical="true"
-                android:layout_toRightOf="@+id/btnPause"
+                android:layout_toRightOf="@+id/title"
                 android:clickable="true"/>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -66,7 +72,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 app:fabCustomSize="40dp"
-                android:layout_marginLeft="20dp"
+                android:layout_marginLeft="15dp"
                 app:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/ic_stop_24"
                 android:layout_centerVertical="true"
