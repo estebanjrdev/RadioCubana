@@ -1,4 +1,4 @@
-package com.ejrm.radiocubana.view
+package com.ejrm.radiocubana.util
 
 import android.content.Context
 import android.media.MediaPlayer
@@ -6,6 +6,6 @@ import android.media.MediaPlayer
 object MediaPlayerSingleton: MediaPlayer() {
     lateinit var context: Context
     fun initMediaPlayerSingleton(context: Context){
-        this.context = context.applicationContext
+        MediaPlayerSingleton.context = context.applicationContext
     }
 }
