@@ -47,6 +47,9 @@ class MainActivity : AppCompatActivity() {
         iniRecyclerView()
 if(checkForInternet(this)){
     Snackbar.make(binding.root, "Is Connected", 3000).show()
+    if(isInternetReachable("https://apklis.cu/")){
+        Snackbar.make(binding.root, "Data Connected", 3000).show()
+    } else Snackbar.make(binding.root, "no hay datos", 3000).show()
 } else Snackbar.make(binding.root, "Internet Not Connected", 3000).show()
        /* if (isNetworkAvailable(this)) {
             if (isOnlineNet()) {
@@ -183,7 +186,7 @@ if(checkForInternet(this)){
     }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET])
-  suspend  fun isInternetReachable(url: String): Int{
+  suspend  fun isInternetReachable(url: String): Boolean {
         delay(2000)
         val httpConnection: HttpURLConnection =
             URL(url)
