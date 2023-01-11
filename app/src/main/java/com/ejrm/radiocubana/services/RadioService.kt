@@ -145,18 +145,6 @@ class RadioService : Service() {
         startForeground(RADIO_NOTIFICATION_ID, notification)
     }
 
-    @SuppressLint("RemoteViewLayout")
-    fun notification() {
-        val notificationLayout = RemoteViews(packageName, R.layout.notification)
-
-        notificationCustomStyle = NotificationCompat.Builder(this, CHANNEL_ID).also {
-            it.setSmallIcon(R.mipmap.ic_radio)
-            //it.setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            it.setCustomContentView(notificationLayout)
-            // it.setCustomBigContentView(notificationLayoutExpanded)
-        }.build()
-    }
-
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(

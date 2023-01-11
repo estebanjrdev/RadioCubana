@@ -1,44 +1,32 @@
 package com.ejrm.radiocubana.view
 
 import android.Manifest
-import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
-import android.graphics.Color
-import android.media.AudioAttributes
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PowerManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.getSystemService
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ejrm.radiocubana.R
 import com.ejrm.radiocubana.databinding.ActivityMainBinding
 import com.ejrm.radiocubana.databinding.ContactoBinding
-import com.ejrm.radiocubana.databinding.SnackbarBinding
 import com.ejrm.radiocubana.model.EmisoraModel
 import com.ejrm.radiocubana.model.EmisoraProvider
-import com.ejrm.radiocubana.services.RadioBrowserService
 import com.ejrm.radiocubana.services.RadioService
-import com.ejrm.radiocubana.util.MediaPlayerSingleton
 import com.ejrm.radiocubana.view.adapters.EmisoraAdapter
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.*
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
@@ -114,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                 httpConnection.setRequestProperty("User-Agent", "Android")
                 httpConnection.setRequestProperty("Connection", "close")
                 httpConnection.connectTimeout = 1500
-                // httpConnection.connect()
+                httpConnection.connect()
                 //println(httpConnection.responseCode)
                 requestcode = httpConnection.responseCode
             } catch (e: Exception) {
