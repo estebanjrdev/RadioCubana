@@ -12,10 +12,12 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.NetworkOnMainThreadException
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,6 +29,9 @@ import com.ejrm.radiocubana.model.EmisoraProvider
 import com.ejrm.radiocubana.services.RadioService
 import com.ejrm.radiocubana.view.adapters.EmisoraAdapter
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
@@ -77,7 +82,24 @@ class MainActivity : AppCompatActivity() {
          return  false
      }*/
     fun itemSelected(emisora: EmisoraModel) {
-        Intent(this, RadioService::class.java).also {
+        /* runBlocking {
+             async { isInternetReachable(emisora.link) }
+         }*/
+        val httpConnection: HttpURLConnection =
+            URL(emisora.link)
+                .openConnection() as HttpURLConnection
+        try {
+            // httpConnection.setRequestProperty("User-Agent", "Android")
+            // httpConnection.setRequestProperty("Connection", "close")
+            httpConnection.connectTimeout = 1500
+            httpConnection.connect()
+            println(httpConnection.responseCode)
+            //  return httpConnection.responseCode == 204
+        } catch (e: NetworkOnMainThreadException) {
+            println(e.toString())
+        }
+        // Toast.makeText(this,request.toString(),Toast.LENGTH_SHORT).show()
+        /*Intent(this, RadioService::class.java).also {
             it.putExtra("URL", emisora.link)
             it.putExtra("NAME", emisora.name)
             it.putExtra("IMAGE", emisora.imagen)
@@ -87,29 +109,28 @@ class MainActivity : AppCompatActivity() {
             binding.title.text = title
             binding.title.isSelected = true
             binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
-        }
+        }*/
     }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET])
-    fun isInternetReachable(url: String): Int? {
-        //delay(2000)
-        var requestcode: Int? = null
+    suspend fun isInternetReachable(url: String) {
+        delay(2000)
         val httpConnection: HttpURLConnection =
             URL(url)
                 .openConnection() as HttpURLConnection
-        if (checkForInternet(this)) {
+        if (isNetworkAvailable(this)) {
             try {
-                httpConnection.setRequestProperty("User-Agent", "Android")
-                httpConnection.setRequestProperty("Connection", "close")
+                // httpConnection.setRequestProperty("User-Agent", "Android")
+                // httpConnection.setRequestProperty("Connection", "close")
                 httpConnection.connectTimeout = 1500
                 httpConnection.connect()
-                //println(httpConnection.responseCode)
-                requestcode = httpConnection.responseCode
-            } catch (e: Exception) {
-                e.printStackTrace()
+                println(httpConnection.responseCode)
+                //  return httpConnection.responseCode == 204
+            } catch (e: NetworkOnMainThreadException) {
+                println(e.toString())
             }
         }
-        return requestcode
+        //  return httpConnection.responseCode
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
