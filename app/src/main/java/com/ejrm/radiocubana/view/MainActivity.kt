@@ -2,13 +2,17 @@ package com.ejrm.radiocubana.view
 
 import android.Manifest
 import android.app.ActivityManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ActivityInfo
+import android.graphics.Color
 import android.media.AudioAttributes
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -18,6 +22,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.getSystemService
@@ -25,8 +30,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ejrm.radiocubana.R
 import com.ejrm.radiocubana.databinding.ActivityMainBinding
 import com.ejrm.radiocubana.databinding.ContactoBinding
+import com.ejrm.radiocubana.databinding.SnackbarBinding
 import com.ejrm.radiocubana.model.EmisoraModel
 import com.ejrm.radiocubana.model.EmisoraProvider
+import com.ejrm.radiocubana.services.RadioBrowserService
 import com.ejrm.radiocubana.services.RadioService
 import com.ejrm.radiocubana.util.MediaPlayerSingleton
 import com.ejrm.radiocubana.view.adapters.EmisoraAdapter
@@ -38,35 +45,28 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    var mediaPlayer: MediaPlayerSingleton? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation = (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         iniRecyclerView()
-if(checkForInternet(this)){
-    Snackbar.make(binding.root, "Is Connected", 3000).show()
-    if(isInternetReachable("https://apklis.cu/")){
-        Snackbar.make(binding.root, "Data Connected", 3000).show()
-    } else Snackbar.make(binding.root, "no hay datos", 3000).show()
-} else Snackbar.make(binding.root, "Internet Not Connected", 3000).show()
-       /* if (isNetworkAvailable(this)) {
-            if (isOnlineNet()) {
-                iniRecyclerView()
+        binding.btnPlay.setOnClickListener(View.OnClickListener {
+            if (RadioService.isPlaying()) {
+                RadioService.controlPlay()
+                binding.btnPlay.setImageResource(R.drawable.ic_play_24)
             } else {
-                Toast.makeText(this, "No hay conexion", Toast.LENGTH_SHORT).show()
+                RadioService.controlPlay()
+                binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
             }
-        } else {
-            Toast.makeText(this, "active wifi o datos moviles", Toast.LENGTH_SHORT).show()
-        }*/
-
-      /*  if(isInternetReachable()){
-            Toast.makeText(this, "ACCECIBLE", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "No disponible", Toast.LENGTH_SHORT).show()
-        }*/
-
+        })
+        binding.btnStop.setOnClickListener(View.OnClickListener {
+            RadioService.stopRadio()
+            Intent(this, RadioService::class.java).also {
+                stopService(it)
+            }
+            binding.layoutReproduction.visibility = LinearLayout.INVISIBLE
+        })
     }
 
     private fun iniRecyclerView() {
@@ -77,7 +77,8 @@ if(checkForInternet(this)){
             )
         }
     }
-     fun isServiceRunning(mClass: Class<RadioService>): Boolean{
+
+    /* fun isServiceRunning(mClass: Class<RadioService>): Boolean{
 
          val manager: ActivityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
          for (service: ActivityManager.RunningServiceInfo in manager.getRunningServices(Integer.MAX_VALUE)){
@@ -86,14 +87,12 @@ if(checkForInternet(this)){
              }
          }
          return  false
-     }
+     }*/
     fun itemSelected(emisora: EmisoraModel) {
-        val url = emisora.link
-       // initMediaPlayer(emisora.name, url, emisora.imagen)
-        Intent(this,RadioService::class.java).also {
-            it.putExtra("URL",url)
-            it.putExtra("NAME",emisora.name)
-            it.putExtra("IMAGE",emisora.imagen)
+        Intent(this, RadioService::class.java).also {
+            it.putExtra("URL", emisora.link)
+            it.putExtra("NAME", emisora.name)
+            it.putExtra("IMAGE", emisora.imagen)
             startService(it)
             binding.layoutReproduction.visibility = LinearLayout.VISIBLE
             binding.imagelogo.setImageResource(emisora.imagen)
@@ -101,111 +100,28 @@ if(checkForInternet(this)){
             binding.title.isSelected = true
             binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
         }
-
-
-    }
-
-    fun startStopService(){
-        if (isServiceRunning(RadioService::class.java)){
-
-        }
-
-    }
-
-    private fun initMediaPlayer(title: String, url: String, imagen: Int) {
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayerSingleton
-            mediaPlayer?.initMediaPlayerSingleton(this)
-            mediaPlayer?.setDataSource(url)
-            mediaPlayer?.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            mediaPlayer?.setScreenOnWhilePlaying(true)
-            mediaPlayer?.setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
-            mediaPlayer?.prepareAsync()
-            mediaPlayer?.setOnPreparedListener {
-                binding.layoutReproduction.visibility = LinearLayout.VISIBLE
-                binding.imagelogo.setImageResource(imagen)
-                binding.title.text = title
-                binding.title.isSelected = true
-                binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
-                mediaPlayer?.start()
-            }
-        } else if (mediaPlayer != null) {
-            mediaPlayer?.stop()
-            mediaPlayer?.reset()
-            mediaPlayer = null
-            binding.layoutReproduction.visibility = LinearLayout.INVISIBLE
-            mediaPlayer = MediaPlayerSingleton
-            mediaPlayer?.initMediaPlayerSingleton(this)
-                mediaPlayer?.setDataSource(url)
-                mediaPlayer?.setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build()
-                )
-                mediaPlayer?.prepareAsync()
-                mediaPlayer?.setOnPreparedListener {
-
-                    binding.layoutReproduction.visibility = LinearLayout.VISIBLE
-                    binding.imagelogo.setImageResource(imagen)
-                    binding.title.text = title
-                    binding.title.isSelected = true
-                    binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
-                    mediaPlayer?.start()
-                }
-
-        }
-        binding.btnPlay.setOnClickListener(View.OnClickListener {
-            if (!isServiceRunning(RadioService::class.java)){
-                startService(Intent(this,RadioService::class.java))
-                binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
-            } else{
-                stopService(Intent(this,RadioService::class.java))
-                binding.btnPlay.setImageResource(R.drawable.ic_play_24)
-            }
-
-           /* if (mediaPlayer!!.isPlaying) {
-                mediaPlayer?.pause()
-                binding.btnPlay.setImageResource(R.drawable.ic_play_24)
-            } else {
-                mediaPlayer?.start()
-                binding.btnPlay.setImageResource(R.drawable.ic_pause_24)
-            }*/
-        })
-        binding.btnStop.setOnClickListener(View.OnClickListener {
-          /*  if (mediaPlayer != null) {
-                mediaPlayer?.stop()
-                mediaPlayer?.reset()
-                mediaPlayer = null
-                binding.layoutReproduction.visibility = LinearLayout.INVISIBLE
-            }*/
-        })
     }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET])
-  suspend  fun isInternetReachable(url: String): Boolean {
-        delay(2000)
+    fun isInternetReachable(url: String): Int? {
+        //delay(2000)
+        var requestcode: Int? = null
         val httpConnection: HttpURLConnection =
             URL(url)
                 .openConnection() as HttpURLConnection
-        if (isNetworkAvailable(this)) {
+        if (checkForInternet(this)) {
             try {
-
                 httpConnection.setRequestProperty("User-Agent", "Android")
                 httpConnection.setRequestProperty("Connection", "close")
                 httpConnection.connectTimeout = 1500
-                httpConnection.connect()
-                println(httpConnection.responseCode)
-
-              //  return httpConnection.responseCode == 204
+                // httpConnection.connect()
+                //println(httpConnection.responseCode)
+                requestcode = httpConnection.responseCode
             } catch (e: Exception) {
-              e.printStackTrace()
+                e.printStackTrace()
             }
         }
-        return httpConnection.responseCode
+        return requestcode
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
@@ -229,9 +145,9 @@ if(checkForInternet(this)){
         }
     }
 
-   /* val broadCastReceiver: BroadcastReceiver(){
+    /* val broadCastReceiver: BroadcastReceiver(){
 
-    }*/
+     }*/
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
@@ -309,42 +225,10 @@ if(checkForInternet(this)){
         return super.onOptionsItemSelected(item)
     }
 
-    fun isOnlineNet(): Boolean {
-        try {
-            val p = Runtime.getRuntime().exec("ping -c 1 www.google.es")
-            val `val` = p.waitFor()
-            return `val` == 0
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return false
-    }
-
-    fun isOnline(context: Context): Boolean {
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (connectivityManager != null) {
-            val capabilities =
-                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            if (capabilities != null) {
-                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
-                    return true
-                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
-                    return true
-                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     fun checkForInternet(context: Context): Boolean {
 
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val network = connectivityManager.activeNetwork ?: return false
             val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
@@ -361,5 +245,31 @@ if(checkForInternet(this)){
             return networkInfo.isConnected
         }
         //else Snackbar.make(binding.root, "Internet Not Connected", 3000).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(estadoRed, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+    }
+
+    private val estadoRed = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, p1: Intent?) {
+            if (checkForInternet(baseContext)) {
+                val snackbar: Snackbar =
+                    Snackbar.make(binding.idConstrain, "Is Connected", Snackbar.LENGTH_LONG)
+                snackbar.show()
+                /* if(isInternetReachable("https://apklis.cu/")){
+                     Snackbar.make(binding.root, "Data Connected", 3000).show()
+                 } else Snackbar.make(binding.root, "no hay datos", 3000).show()*/
+            } else {
+                val snackbar: Snackbar = Snackbar.make(
+                    binding.idConstrain,
+                    "Internet Not Connected",
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                snackbar.show()
+            }
+        }
+
     }
 }
